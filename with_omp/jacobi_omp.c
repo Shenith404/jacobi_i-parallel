@@ -6,13 +6,13 @@
 
 #define ITER_MAX 100000
 #define EPSILON 1e-6
-#define MAX_SIZE 100
+#define MAX_SIZE 150
 
 int main()
 {
-    omp_set_num_threads(1); // Set the number of OpenMP threads
+    omp_set_num_threads(8); // Set the number of OpenMP threads
     printf("number of threads: %d\n", omp_get_max_threads());
-    FILE *file = fopen("../input.txt", "r");
+    FILE *file = fopen("../matrix_output.txt", "r");
     if (file == NULL)
     {
         printf("Error opening file.\n");
@@ -22,7 +22,6 @@ int main()
     int n;
     fscanf(file, "%d", &n);
 
-    double max_error = 0.0;
     double A[MAX_SIZE][MAX_SIZE];
     double b[MAX_SIZE];
     double x_old[MAX_SIZE] = {0};
@@ -48,6 +47,7 @@ int main()
         {
             double sum = 0.0;
 
+            // #pragma omp parallel for reduction(+ : sum)
             for (int j = 0; j < n; j++)
             {
                 if (j != i)
@@ -57,21 +57,11 @@ int main()
             x_new[i] = (b[i] - sum) / A[i][i];
         }
 
-// Check for convergence
 #pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
-            // double error = fabs(x_new[i] - x_old[i]);
-            // if (error > max_error)
-            //     max_error = error;
             x_old[i] = x_new[i];
         }
-
-        // if (max_error < EPSILON)
-        // {
-        //     printf("Converged in %d iterations\n", k + 1);
-        //     break;
-        // }
     }
 
     // Print result

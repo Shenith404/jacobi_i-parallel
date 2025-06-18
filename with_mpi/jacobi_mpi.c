@@ -3,7 +3,6 @@
 #include <math.h>
 #include <time.h>
 #include <mpi.h>
-#include <omp.h>
 
 #define ITER_MAX 100000
 #define EPSILON 1e-6
@@ -71,8 +70,6 @@ int main(int argc, char *argv[])
 
     double x_old[MAX_SIZE] = {0};
     double x_new[MAX_SIZE] = {0};
-    double local_max_error = 0.0;
-    double global_max_error = 0.0;
 
     // Start measuring time
     double start_time = MPI_Wtime();
@@ -80,10 +77,7 @@ int main(int argc, char *argv[])
     // Jacobi iteration
     for (int k = 0; k < ITER_MAX; k++)
     {
-        local_max_error = 0.0;
 
-        // Parallelize the row computation with OpenMP
-#pragma omp parallel for
         for (int i = start_row; i < end_row; i++)
         {
             double sum = 0.0;
@@ -102,21 +96,7 @@ int main(int argc, char *argv[])
                        x_new, counts, displs, MPI_DOUBLE,
                        MPI_COMM_WORLD);
 
-        // Find the global maximum error
-        MPI_Allreduce(&local_max_error, &global_max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-        // Check for convergence
-        // if (global_max_error < EPSILON)
-        // {
-        //     if (rank == 0)
-        //     {
-        //         printf("Converged after %d iterations\n", k + 1);
-        //     }
-        //     break;
-        // }
-
-// Update x_old for next iteration
-#pragma omp parallel for
+        // Update x_old for next iteration
         for (int i = 0; i < n; i++)
         {
             x_old[i] = x_new[i];

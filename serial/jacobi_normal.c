@@ -5,11 +5,11 @@
 
 #define ITER_MAX 100000
 #define EPSILON 1e-6
-#define MAX_SIZE 100
+#define MAX_SIZE 150
 
 int main()
 {
-    FILE *file = fopen("../input.txt", "r");
+    FILE *file = fopen("../matrix_output.txt", "r");
     if (file == NULL)
     {
         printf("Error opening file.\n");
