@@ -52,21 +52,6 @@ int main()
             }
             x_new[i] = (b[i] - sum) / A[i][i];
         }
-
-        // Check for convergence
-        for (int i = 0; i < n; i++)
-        {
-            double error = fabs(x_new[i] - x_old[i]);
-            if (error > max_error)
-                max_error = error;
-            x_old[i] = x_new[i];
-        }
-
-        if (max_error < EPSILON)
-        {
-            printf("Converged in %d iterations\n", k + 1);
-            break;
-        }
     }
 
     // Print result
