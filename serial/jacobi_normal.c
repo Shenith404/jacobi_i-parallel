@@ -3,9 +3,8 @@
 #include <math.h>
 #include <time.h>
 
-#define ITER_MAX 100000
+#define ITER_MAX 10000
 #define EPSILON 1e-6
-#define MAX_SIZE 150
 
 int main()
 {
@@ -16,17 +15,19 @@ int main()
         return 1;
     }
 
-    // start measuring time
     clock_t start = clock();
 
     int n;
     fscanf(file, "%d", &n);
 
-    double max_error = 0.0;
-    double A[MAX_SIZE][MAX_SIZE];
-    double b[MAX_SIZE];
-    double x_old[MAX_SIZE] = {0};
-    double x_new[MAX_SIZE] = {0};
+    // Dynamic memory allocation
+    double **A = malloc(n * sizeof(double *));
+    double *b = malloc(n * sizeof(double));
+    double *x_old = calloc(n, sizeof(double));
+    double *x_new = calloc(n, sizeof(double));
+
+    for (int i = 0; i < n; i++)
+        A[i] = malloc(n * sizeof(double));
 
     // Read matrix A
     for (int i = 0; i < n; i++)
@@ -52,18 +53,28 @@ int main()
             }
             x_new[i] = (b[i] - sum) / A[i][i];
         }
+
+        // Copy x_new to x_old
+        for (int i = 0; i < n; i++)
+            x_old[i] = x_new[i];
     }
 
-    // Print result
+    // Print results
     for (int i = 0; i < n; i++)
-    {
         printf("x[%d] = %.6f\n", i, x_new[i]);
-    }
 
-    // Stop measuring time
     clock_t end = clock();
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
     printf("Time taken: %.6f seconds\n", time_spent);
+    printf("Number of iterations: %d\n", ITER_MAX);
+
+    // Free memory
+    for (int i = 0; i < n; i++)
+        free(A[i]);
+    free(A);
+    free(b);
+    free(x_old);
+    free(x_new);
 
     return 0;
 }

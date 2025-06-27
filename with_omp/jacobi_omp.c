@@ -4,14 +4,14 @@
 #include <time.h>
 #include <omp.h>
 
-#define ITER_MAX 100000
+#define ITER_MAX 10000
 #define EPSILON 1e-6
-#define MAX_SIZE 150
 
 int main()
 {
     omp_set_num_threads(8); // Set the number of OpenMP threads
-    printf("number of threads: %d\n", omp_get_max_threads());
+    printf("Number of threads: %d\n", omp_get_max_threads());
+
     FILE *file = fopen("../matrix_output.txt", "r");
     if (file == NULL)
     {
@@ -22,10 +22,14 @@ int main()
     int n;
     fscanf(file, "%d", &n);
 
-    double A[MAX_SIZE][MAX_SIZE];
-    double b[MAX_SIZE];
-    double x_old[MAX_SIZE] = {0};
-    double x_new[MAX_SIZE] = {0};
+    // Dynamic memory allocation
+    double **A = malloc(n * sizeof(double *));
+    double *b = malloc(n * sizeof(double));
+    double *x_old = calloc(n, sizeof(double));
+    double *x_new = calloc(n, sizeof(double));
+
+    for (int i = 0; i < n; i++)
+        A[i] = malloc(n * sizeof(double));
 
     // Read matrix A
     for (int i = 0; i < n; i++)
@@ -38,22 +42,21 @@ int main()
 
     fclose(file);
 
-    // Jacobi iteration
+    // Start measuring time
+    double start_time = omp_get_wtime();
 
+    // Jacobi iteration
     for (int k = 0; k < ITER_MAX; k++)
     {
 #pragma omp parallel for
         for (int i = 0; i < n; i++)
         {
             double sum = 0.0;
-
-            // #pragma omp parallel for reduction(+ : sum)
             for (int j = 0; j < n; j++)
             {
                 if (j != i)
                     sum += A[i][j] * x_old[j];
             }
-
             x_new[i] = (b[i] - sum) / A[i][i];
         }
 
@@ -64,11 +67,25 @@ int main()
         }
     }
 
-    // Print result
+    // Stop measuring time
+    double end_time = omp_get_wtime();
+
+    // Print results
     for (int i = 0; i < n; i++)
     {
         printf("x[%d] = %.6f\n", i, x_new[i]);
     }
+
+    printf("Time taken: %.6f seconds\n", end_time - start_time);
+    printf("Number of iterations: %d\n", ITER_MAX);
+
+    // Free memory
+    for (int i = 0; i < n; i++)
+        free(A[i]);
+    free(A);
+    free(b);
+    free(x_old);
+    free(x_new);
 
     return 0;
 }
